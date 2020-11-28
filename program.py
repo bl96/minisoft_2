@@ -30,15 +30,17 @@ class Program:
                                    "l": create_list_for_images("textures/hero/hero_move_left/", 19)
                                    }
 
+        self.flames_pictures = create_list_for_images("textures/flames/",37)
+
         self.canvas.pack()
         MainMenu(self.canvas, self.main_menu_bg_pictures, self.hero_idle_pictures, self.main_menu_buttons_normal,
-                 self.main_menu_buttons_filled)
+                 self.main_menu_buttons_filled, self.flames_pictures)
         win.mainloop()
 
 
 class MainMenu:
     def __init__(self, canvas: tkinter.Canvas, main_menu_bg_pictures, hero_idle_pictures, main_menu_buttons_normal,
-                 main_menu_buttons_filled):
+                 main_menu_buttons_filled, flames_pictures):
         self.canvas = canvas
         self.main_menu_bg_pictures = main_menu_bg_pictures
 
@@ -47,13 +49,18 @@ class MainMenu:
 
         self.hero_idle_pictures = hero_idle_pictures
 
+        self.flames_pictures = flames_pictures
+
         self.background_image = self.canvas.create_image(480, 270, image=self.main_menu_bg_pictures)
         self.hero_image = self.canvas.create_image(360, 480, image=self.hero_idle_pictures["r"][0])
+        self.flame_image = self.canvas.create_image(475, 193, image=self.flames_pictures[0])
         self.main_menu_buttons_image = {}
 
         self.hero_image_counter = 0
+        self.flame_image_counter = 0
 
         self.background_hero_animation()
+        self.background_flame_animation()
         self.create_buttons()
 
         self.buttons_bind = self.canvas.bind("<Motion>", self.filled_button)
@@ -65,6 +72,13 @@ class MainMenu:
         if self.hero_image_counter == len(self.hero_idle_pictures["r"]):
             self.hero_image_counter = 0
         self.canvas.after(300, self.background_hero_animation)
+
+    def background_flame_animation(self):
+        self.canvas.itemconfig(self.flame_image, image=self.flames_pictures[self.flame_image_counter])
+        self.flame_image_counter += 1
+        if self.flame_image_counter == len(self.flames_pictures):
+            self.flame_image_counter = 0
+        self.canvas.after(80, self.background_flame_animation)
 
     def create_buttons(self):
         y = 50
