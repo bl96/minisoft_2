@@ -16,20 +16,27 @@ class MainMenu:
         self.flames_pictures = flames_pictures
         self.tiles_pictures = tiles_pictures
 
-        self.background_image = self.canvas.create_image(480, 270, image=self.main_menu_bg_pictures)
-        self.hero_image = self.canvas.create_image(360, 480, image=self.hero_idle_pictures["r"][0])
-        self.flame_image = self.canvas.create_image(475, 193, image=self.flames_pictures[0])
+        self.background_image = None
+        self.hero_image = None
+        self.flame_image = None
         self.main_menu_buttons_image = {}
+        self.create_images()
 
         self.hero_image_counter = 0
         self.flame_image_counter = 0
 
         self.background_hero_animation()
         self.background_flame_animation()
-        self.create_buttons()
 
         self.buttons_bind = self.canvas.bind("<Motion>", self.filled_button)
         self.buttons_action_bind = self.canvas.tag_bind("button", "<Button-1>", self.buttons_action)
+
+    def create_images(self):
+        self.background_image = self.canvas.create_image(480, 270, image=self.main_menu_bg_pictures)
+        self.hero_image = self.canvas.create_image(360, 480, image=self.hero_idle_pictures["r"][0])
+        self.flame_image = self.canvas.create_image(475, 193, image=self.flames_pictures[0])
+        self.main_menu_buttons_image = {}
+        self.create_buttons()
 
     def background_hero_animation(self):
         self.canvas.itemconfig(self.hero_image, image=self.hero_idle_pictures["r"][self.hero_image_counter])
@@ -48,7 +55,9 @@ class MainMenu:
     def create_buttons(self):
         y = 50
         for buttonName in ["start", "load", "editor", "close"]:
-            self.main_menu_buttons_image[buttonName] = self.canvas.create_image(120, y, image=self.main_menu_buttons_normal[buttonName], tag="button")
+            self.main_menu_buttons_image[buttonName] = self.canvas.create_image(120, y,
+                                                                                image=self.main_menu_buttons_normal[
+                                                                                    buttonName], tag="button")
             y += 40
         self.canvas.update()
 
@@ -63,7 +72,8 @@ class MainMenu:
 
     def buttons_action(self, event):
         if self.is_clicked_button("start"):
-            Level(self.canvas, self.hero_idle_pictures, self.tiles_pictures, self.tiles_pictures, None)
+            self.canvas.delete("all")
+            Level(self.canvas, self.hero_idle_pictures, self.tiles_pictures, self.tiles_pictures, self, None)
 
         if self.is_clicked_button("load"):
             return
@@ -76,3 +86,8 @@ class MainMenu:
 
     def is_clicked_button(self, button):
         return self.canvas.coords("current") == self.canvas.coords(self.main_menu_buttons_image[button])
+
+    def rework_main_menu(self):
+        self.canvas.delete("all")
+        self.create_images()
+
