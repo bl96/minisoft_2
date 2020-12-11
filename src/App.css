@@ -51,4 +51,22 @@
   width:100vw;
   height:100vh;
   background-color: silver;
+  display:flex;
+}
+
+.playground_properties{
+  display: grid;
+  align-self: center;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.square_properties{
+  min-width:4vw;
+  min-height:4vh;
+  height:auto;
+}
+
+.col{
+  padding: 0;
 }

@@ -10,4 +10,7 @@ const HERO_BACKGROUND_PICTURES = [
     require("../textures/hero/hero_idle_right/3.png"),require("../textures/hero/hero_idle_right/4.png"),require("../textures/hero/hero_idle_right/5.png"),
     require("../textures/hero/hero_idle_right/6.png"),require("../textures/hero/hero_idle_right/7.png"),require("../textures/hero/hero_idle_right/8.png"),
     require("../textures/hero/hero_idle_right/9.png"),require("../textures/hero/hero_idle_right/10.png")]
-export {BACKGROUND_IMAGES,MENU_BUTTON_NORMAL_PICTURES,MENU_BUTTON_FILLED_PICTURES,HERO_BACKGROUND_PICTURES}
+const ENVIRONMENT_PICTURES = {
+    "0":require("../textures/tiles/0.png"),"1":require("../textures/tiles/1.png")
+}
+export {BACKGROUND_IMAGES,MENU_BUTTON_NORMAL_PICTURES,MENU_BUTTON_FILLED_PICTURES,HERO_BACKGROUND_PICTURES,ENVIRONMENT_PICTURES}

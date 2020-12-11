@@ -1,7 +1,7 @@
 import React from "react";
 import {Menu} from "./Menu";
 import {
-    BACKGROUND_IMAGES,
+    BACKGROUND_IMAGES, ENVIRONMENT_PICTURES,
     HERO_BACKGROUND_PICTURES,
     MENU_BUTTON_FILLED_PICTURES,
     MENU_BUTTON_NORMAL_PICTURES
@@ -15,12 +15,23 @@ export class Game extends React.Component<any,any>{
     menuButtonsNormalPictures:any = MENU_BUTTON_NORMAL_PICTURES;
     menuButtonsFilledPictures:any = MENU_BUTTON_FILLED_PICTURES;
     heroBackgroundPictures:any = HERO_BACKGROUND_PICTURES;
+    environmentPictures:any = ENVIRONMENT_PICTURES;
+    gameMap:any;
 
     constructor(props:any) {
         super(props);
         this.state = {
             menuToggled: true
         };
+        this.gameMap = [
+            ["1","1","1","1","1","1","1","1","1","1","1","1"],
+            ["1","0","0","0","0","0","0","0","0","0","0","1"],
+            ["1","0","0","0","0","0","0","0","0","0","0","1"],
+            ["1","0","0","0","0","0","0","0","0","0","0","1"],
+            ["1","0","0","0","0","0","0","0","0","0","0","1"],
+            ["1","0","0","0","0","0","0","0","0","0","0","1"],
+            ["1","0","0","0","0","0","0","0","0","0","0","1"],
+            ["1","1","1","1","1","1","1","1","1","1","1","1"]];
         this.changePoints = this.changePoints.bind(this);
         this.background_picture_animation = this.background_picture_animation.bind(this);
         this.resetGame = this.resetGame.bind(this);
@@ -63,7 +74,7 @@ export class Game extends React.Component<any,any>{
                  <Menu backgroundPicture={this.backgroundPicture} heroBackgroundPictures={this.heroBackgroundPictures}
                        menuButtonsFilledPictures={this.menuButtonsFilledPictures}
                        menuButtonsNormalPictures={this.menuButtonsNormalPictures} toggleMenu={this.toggleMenu}/>:
-                 <Level toggleMenu={this.toggleMenu}/>
+                 <Level environmentPictures={this.environmentPictures} gameMap={this.gameMap} level={"0"}  toggleMenu={this.toggleMenu}/>
              }
          </div>
         );
