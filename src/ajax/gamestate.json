@@ -1,0 +1,11 @@
+{"gameMap": [["0","x","0","0"],["0","0","0","0"],["0","0","0","0"],["0","0","0","0"]],
+  "wallColor":"black",
+  "pathColor": "blue",
+  "sizeX": "60",
+  "sizeY": "60",
+  "points":7,
+  "startingPoints":7,
+  "rank":[32,16,12],
+  "maxTime":35,
+  "currentTime":35
+}
