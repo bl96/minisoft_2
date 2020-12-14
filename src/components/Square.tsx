@@ -7,15 +7,13 @@ interface SquareProps{
     wallColor:string
     pathColor:string
     environmentPictures:any;
+    playerPictures:any;
     type:string;
+    isPlayerOn: boolean;
 }
 
 interface SquareState{
-    type:string
-    sizeX:string
-    sizeY:string
-    wallColor:string
-    pathColor:string
+    isPlayerOn: boolean;
 }
 
 export const SquareDiv = styled.div<{ sizeX: string; sizeY: string; color:string}>`
@@ -25,19 +23,32 @@ export const SquareDiv = styled.div<{ sizeX: string; sizeY: string; color:string
 	`;
 
 export class Square extends React.Component<SquareProps,SquareState> {
-    squareRef:any;
-    environmentPictures:any;
-    type:string;
+    squareRef: any;
+    environmentPictures: any;
+    playerPictures:any;
+    type: string;
 
     constructor(props: SquareProps) {
         super(props);
 
-        this.environmentPictures = this.props.environmentPictures;
-        this.type = this.props.type;
+        this.environmentPictures = props.environmentPictures;
+        this.playerPictures = props.playerPictures;
+        this.type = props.type;
 
-        this.state={
-            ...props
+        this.state = {
+            isPlayerOn:props.isPlayerOn
         }
+
+    }
+
+    componentDidUpdate(prevProps: Readonly<SquareProps>, prevState: Readonly<SquareState>, snapshot?: any) {
+        if(this.props.isPlayerOn !== prevProps.isPlayerOn){
+            this.toggleIsPlayerOn();
+        }
+    }
+
+    toggleIsPlayerOn(){
+        this.setState({isPlayerOn:!this.state.isPlayerOn})
     }
 
     render() {
@@ -45,6 +56,11 @@ export class Square extends React.Component<SquareProps,SquareState> {
             <div>
                 <img className={"square_properties"} ref={squareR => this.squareRef = squareR}
                      src={this.environmentPictures[this.type].default} alt={"background_image"}/>
+                {(this.state.isPlayerOn) ?
+                    <img className={"player-properties"} src={this.playerPictures[0].default}
+                         alt={"background_image"}/>:
+                    <div/>
+                }
             </div>
         );
     }

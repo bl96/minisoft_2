@@ -7,6 +7,7 @@ import {
     MENU_BUTTON_NORMAL_PICTURES
 } from "../const/images";
 import {Level} from "./Level";
+import {CustomTypes} from "../const/types";
 
 export class Game extends React.Component<any,any>{
     pictures:any;
@@ -16,7 +17,10 @@ export class Game extends React.Component<any,any>{
     menuButtonsFilledPictures:any = MENU_BUTTON_FILLED_PICTURES;
     heroBackgroundPictures:any = HERO_BACKGROUND_PICTURES;
     environmentPictures:any = ENVIRONMENT_PICTURES;
+    playerPictures:any = HERO_BACKGROUND_PICTURES;
     gameMap:any;
+    playerPosition: CustomTypes.Point;
+
 
     constructor(props:any) {
         super(props);
@@ -32,14 +36,10 @@ export class Game extends React.Component<any,any>{
             ["1","0","0","0","0","0","0","0","0","0","0","1"],
             ["1","0","0","0","0","0","0","0","0","0","0","1"],
             ["1","1","1","1","1","1","1","1","1","1","1","1"]];
+        this.playerPosition = [3,4]
         this.changePoints = this.changePoints.bind(this);
-        this.background_picture_animation = this.background_picture_animation.bind(this);
         this.resetGame = this.resetGame.bind(this);
         this.toggleMenu = this.toggleMenu.bind(this);
-    }
-
-    componentDidMount() {
-        this.interval = setInterval(this.background_picture_animation,1000);
     }
 
     createObjectPictures(path:string,number:Number){
@@ -62,21 +62,24 @@ export class Game extends React.Component<any,any>{
     resetGame(){
     }
 
-    background_picture_animation(){
-    }
     changePoints(){
     }
 
     render() {
         return (
-         <div className={"main_grid"}>
-             {this.state.menuToggled?
-                 <Menu backgroundPicture={this.backgroundPicture} heroBackgroundPictures={this.heroBackgroundPictures}
-                       menuButtonsFilledPictures={this.menuButtonsFilledPictures}
-                       menuButtonsNormalPictures={this.menuButtonsNormalPictures} toggleMenu={this.toggleMenu}/>:
-                 <Level environmentPictures={this.environmentPictures} gameMap={this.gameMap} level={"0"}  toggleMenu={this.toggleMenu}/>
-             }
-         </div>
+            <div className={"main_grid"}>
+                {this.state.menuToggled ?
+                    <Menu backgroundPicture={this.backgroundPicture}
+                          heroBackgroundPictures={this.heroBackgroundPictures}
+                          menuButtonsFilledPictures={this.menuButtonsFilledPictures}
+                          menuButtonsNormalPictures={this.menuButtonsNormalPictures} toggleMenu={this.toggleMenu}/> :
+                    <div>
+                        <Level blockType={"1"} playerPictures={this.playerPictures} playerPosition={this.playerPosition}
+                               environmentPictures={this.environmentPictures} gameMap={this.gameMap} level={"0"}
+                               toggleMenu={this.toggleMenu}/>
+                    </div>
+                }
+            </div>
         );
     }
 }
