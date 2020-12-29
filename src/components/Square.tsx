@@ -1,67 +1,49 @@
 import React from "react";
-import styled from "@emotion/styled";
+import {CustomTypes} from "../const/types";
 
 interface SquareProps{
-    sizeX:string
-    sizeY:string
-    wallColor:string
-    pathColor:string
-    environmentPictures:any;
-    playerPictures:any;
-    type:string;
+    tilePicture:any;
+    playerPicture:any;
+    finishPicture:any;
     isPlayerOn: boolean;
+    isFinishOn: boolean;
+    changeValueInArray:any;
+    removeObjectFromTile:any;
+    tileCoordsInArray: CustomTypes.Point;
 }
 
 interface SquareState{
-    isPlayerOn: boolean;
 }
-
-export const SquareDiv = styled.div<{ sizeX: string; sizeY: string; color:string}>`
-		height: ${p => p.sizeX}px;
-		width: ${p => p.sizeY}px;
-		background-color:${p => p.color} !important;
-	`;
 
 export class Square extends React.Component<SquareProps,SquareState> {
     squareRef: any;
-    environmentPictures: any;
-    playerPictures:any;
-    type: string;
+    changeValueInArray:any;
+    tileCoordsInArray: CustomTypes.Point;
 
     constructor(props: SquareProps) {
         super(props);
-
-        this.environmentPictures = props.environmentPictures;
-        this.playerPictures = props.playerPictures;
-        this.type = props.type;
-
+        this.tileCoordsInArray = props.tileCoordsInArray;
+        this.changeValueInArray = props.changeValueInArray;
         this.state = {
             isPlayerOn:props.isPlayerOn
         }
-
     }
-
-    componentDidUpdate(prevProps: Readonly<SquareProps>, prevState: Readonly<SquareState>, snapshot?: any) {
-        if(this.props.isPlayerOn !== prevProps.isPlayerOn){
-            this.toggleIsPlayerOn();
+    onDropObject(event:any){
+        let value:string = event.dataTransfer.getData("arrow_type");
+        if(value){
+            this.changeValueInArray(value,this.tileCoordsInArray);
         }
-    }
-
-    toggleIsPlayerOn(){
-        this.setState({isPlayerOn:!this.state.isPlayerOn})
     }
 
     render() {
         return (
-            <div>
-                <img className={"square_properties"} ref={squareR => this.squareRef = squareR}
-                     src={this.environmentPictures[this.type].default} alt={"background_image"}/>
-                {(this.state.isPlayerOn) ?
-                    <img className={"player-properties"} src={this.playerPictures[0].default}
-                         alt={"background_image"}/>:
-                    <div/>
-                }
-            </div>
+            <img
+                 onClick={() => this.props.removeObjectFromTile(this.tileCoordsInArray)}
+                 onDrop={(e) => this.onDropObject(e)}
+                 onDragOver={(e) => e.preventDefault()}
+                 className={"square_properties"}
+                 src={(this.props.isPlayerOn) ? this.props.playerPicture.default : (this.props.isFinishOn)? this.props.finishPicture.default:this.props.tilePicture.default}
+                 alt={"square"}/>
         );
     }
 }
