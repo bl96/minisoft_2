@@ -11,6 +11,7 @@ interface SquareProps{
     checkIfFinishOnTileEditor:any;
     setEditorPlayerDirection:any;
     finishPicture:any;
+    colType:string;
     tileCoordsInArray: CustomTypes.Point;
 }
 
@@ -28,19 +29,22 @@ export class SquareEditor extends React.Component<SquareProps,SquareState> {
     }
 
     onDropObject(event:any) {
-        let value: string = event.dataTransfer.getData("isPlayer");
+        let value: string = event.dataTransfer.getData("value");
         if(value === ""){
             return;
         }
-        this.props.changeValueInArrayEditor(this.tileCoordsInArray, true, value === "true");
+        this.props.changeValueInArrayEditor(this.tileCoordsInArray, value, true);
     }
 
     dragObject(event:any){
         if(this.props.isPlayerOn){
-            event.dataTransfer.setData("isPlayer","true");
+            event.dataTransfer.setData("value","player");
         }
-        if(this.props.isFinishOn){
-            event.dataTransfer.setData("isPlayer", "false");
+        else if(this.props.isFinishOn){
+            event.dataTransfer.setData("value","finish");
+        }
+        else{
+            event.dataTransfer.setData("value",this.props.colType);
         }
     }
 

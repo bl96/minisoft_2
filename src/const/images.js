@@ -9,6 +9,8 @@ const TILES = {
     "0":require("../textures/tiles/0.png"),
     "1":require("../textures/tiles/1.png"),
     "2":require("../textures/tiles/2.png"),
+    "3":require("../textures/tiles/3.png"),
+    "4":require("../textures/tiles/4.png"),
     "w":require("../textures/arrows/w.png"),
     "s":require("../textures/arrows/s.png"),
     "a":require("../textures/arrows/a.png"),

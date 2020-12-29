@@ -3,11 +3,11 @@ import React from "react";
 interface EditorPlayerFinishProps{
     tilePicture:any;
     setEditorPlayerDirection:any;
-    isPlayer:boolean;
+    type:string;
 }
 
 interface EditorPlayerFinishState{
-    isInEditor:boolean
+
 }
 
 export class EditorPlayerFinish extends React.Component<EditorPlayerFinishProps,EditorPlayerFinishState> {
@@ -18,12 +18,12 @@ export class EditorPlayerFinish extends React.Component<EditorPlayerFinishProps,
     }
 
     dragObject(event:any){
-        event.dataTransfer.setData("isPlayer", this.props.isPlayer);
+        event.dataTransfer.setData("value", this.props.type==="player"?"player":this.props.type==="finish"?"finish":"4");
     }
 
     render() {
         return (
-            <img onClick={()=> this.props.setEditorPlayerDirection(this.props.isPlayer)}
+            <img onClick={()=> this.props.setEditorPlayerDirection(this.props.type==="player")}
                  onDragStart={(e)=>{this.dragObject(e)}}
                  className={"arrow-properties"} ref={object => this.objectRef = object}
                  src={this.props.tilePicture.default} alt={"object"}/>

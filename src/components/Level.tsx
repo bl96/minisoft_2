@@ -9,6 +9,7 @@ import Container from "react-bootstrap/cjs/Container";
 import {Arrow} from "./Arrow";
 import {SquareEditor} from "./SquareEditor";
 import FileSaver from 'file-saver';
+import Form from "react-bootstrap/esm/Form";
 
 interface LevelProps{
     level:any;
@@ -35,6 +36,7 @@ interface LevelState{
     finishPosition:CustomTypes.Point;
     result:boolean;
     minArrows:number;
+    speedValue:number;
 }
 
 export class Level extends React.Component<LevelProps,LevelState> {
@@ -74,6 +76,7 @@ export class Level extends React.Component<LevelProps,LevelState> {
             editorNmbRows: props.gameMap.length,
             editorNmbCols: props.gameMap[0].length,
             minArrows:-1,
+            speedValue:1000,
             result: false
         }
         this.changePlayerPosition = this.changePlayerPosition.bind(this);
@@ -198,7 +201,7 @@ export class Level extends React.Component<LevelProps,LevelState> {
 
     startMovementInterval() {
         if (this.movementInterval == null) {
-            this.movementInterval = setInterval(this.changePlayerPosition, 1000);
+            this.movementInterval = setInterval(this.changePlayerPosition, this.state.speedValue);
         }
     }
 
@@ -235,10 +238,17 @@ export class Level extends React.Component<LevelProps,LevelState> {
         });
     }
 
-    changeValueInArrayEditor(coords: CustomTypes.Point, isDraggedObject:boolean = false, isPlayer:boolean = false) {
+
+    changeValueEditor(value:string, coords:CustomTypes.Point){
+        let newGameMapCopy: any = [...this.state.editorMap];
+        newGameMapCopy[coords[0]][coords[1]] = value;
+        this.setState({editorMap: newGameMapCopy});
+    }
+
+    changeValueInArrayEditor(coords: CustomTypes.Point, type:string, isDraggableObject:boolean = false) {
         let previousValue = this.state.editorMap[coords[0]][coords[1]];
 
-        if (!isDraggedObject) {
+        if (!isDraggableObject) {
             if (coords[0] === this.state.editorPlayerPosition[0] && coords[1] === this.state.editorPlayerPosition[1] || previousValue === "2") {
                 return;
             }
@@ -246,22 +256,22 @@ export class Level extends React.Component<LevelProps,LevelState> {
             if (previousValue === "0") {
                 value = "1";
             }
+            this.changeValueEditor(value,coords);
 
-            let newGameMapCopy: any = [...this.state.editorMap];
-            newGameMapCopy[coords[0]][coords[1]] = value;
-            this.setState({editorMap: newGameMapCopy});
         } else {
-            if (previousValue === "1" || previousValue === "2") {
+            if(this.checkIfFinishOnTileEditor(coords[0],coords[1])){
+                this.setState({editorFinishPosition:[-1,-1]});
+            }
+            if(this.checkIfPlayerOnTileEditor(coords[0],coords[1])){
+                this.setState({editorPlayerPosition:[-1,-1]});
+            }
+
+            if (type === "0" || type === "1" || type === "4") {
+                this.changeValueEditor(type,coords);
                 return;
             }
 
-            if(this.checkIfFinishOnTileEditor(coords[0],coords[1])){
-                this.setState({editorFinishPosition:[-1,1]});
-            }
-            else if(this.checkIfPlayerOnTileEditor(coords[0],coords[1])){
-                this.setState({editorPlayerPosition:[-1,1]});
-            }
-            isPlayer? this.setState({editorPlayerPosition: coords}):this.setState({editorFinishPosition: coords})
+            type==="player"?this.setState({editorPlayerPosition: coords}):this.setState({editorFinishPosition: coords})
         }
     }
 
@@ -446,6 +456,16 @@ export class Level extends React.Component<LevelProps,LevelState> {
         this.defaultFinishPosition = this.state.editorFinishPosition;
     }
 
+    changeSpeed(event:any){
+        let value:number = event.target.value;
+        this.setState({speedValue:value}, () => this.changeIntervalSpeed());
+    }
+
+    changeIntervalSpeed(){
+        this.stopMovementInterval();
+        this.startMovementInterval();
+    }
+
     render() {
         return (
             <div>
@@ -464,6 +484,12 @@ export class Level extends React.Component<LevelProps,LevelState> {
                                     onClick={() => this.resetPlayerPositionToPrevious()}>
                                 Vymaž zmeny
                             </Button>
+                            <Form>
+                                <Form.Group controlId="formBasicRange">
+                                    <Form.Label>Rýchlosť posunu</Form.Label>
+                                    <Form.Control onChange={(e:any) => this.changeSpeed(e)} min={100} max={1000} step={50} value={this.state.speedValue} type="range" />
+                                </Form.Group>
+                            </Form>
                         </div>
                         <div className={"arrows-group-properties"}>
                             <Arrow arrowType={"w"} tilePicture={this.tilesPictures["w"]}/>
@@ -505,15 +531,16 @@ export class Level extends React.Component<LevelProps,LevelState> {
                     </div>
                         <div className={"arrows-group-properties"}>
                             {(this.state.editorPlayerPosition[0]===-1 && this.state.editorPlayerPosition[1]===-1)?
-                                <EditorPlayerFinish isPlayer={true} setEditorPlayerDirection={this.setEditorPlayerDirection} tilePicture={this.playerPictures[this.state.editorPlayerDirection]}/>:
+                                <EditorPlayerFinish type={"player"} setEditorPlayerDirection={this.setEditorPlayerDirection} tilePicture={this.playerPictures[this.state.editorPlayerDirection]}/>:
                                 <div>
                                 </div>
                             }
                             {(this.state.editorFinishPosition[0]===-1 && this.state.editorFinishPosition[1]===-1)?
-                                <EditorPlayerFinish isPlayer={false} setEditorPlayerDirection={this.setEditorPlayerDirection} tilePicture={this.tilesPictures["2"]}/>:
+                                <EditorPlayerFinish type={"finish"} setEditorPlayerDirection={this.setEditorPlayerDirection} tilePicture={this.tilesPictures["2"]}/>:
                                 <div>
                                 </div>
                             }
+                            <EditorPlayerFinish type={"coin"} setEditorPlayerDirection={this.setEditorPlayerDirection} tilePicture={this.tilesPictures["4"]}/>
                         </div>
                     </div>}
 
@@ -592,6 +619,7 @@ export class Level extends React.Component<LevelProps,LevelState> {
                                                 changeValueInArrayEditor={this.changeValueInArrayEditor}
                                                 tileCoordsInArray={[countRow, countCol]}
                                                 playerPicture={this.playerPictures[this.state.editorPlayerDirection]}
+                                                colType={colType}
                                                 tilePicture={this.tilesPictures[colType]}
                                                 finishPicture={this.tilesPictures["2"]}
                                                 isPlayerOn={this.checkIfPlayerOnTileEditor(countRow, countCol)}
