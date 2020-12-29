@@ -12,11 +12,6 @@ interface EditorPlayerFinishState{
 
 export class EditorPlayerFinish extends React.Component<EditorPlayerFinishProps,EditorPlayerFinishState> {
     objectRef:any;
-
-    constructor(props:any) {
-        super(props);
-    }
-
     dragObject(event:any){
         event.dataTransfer.setData("value", this.props.type==="player"?"player":this.props.type==="finish"?"finish":"4");
     }

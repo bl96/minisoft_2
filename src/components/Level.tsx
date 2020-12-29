@@ -17,9 +17,9 @@ interface LevelProps{
     blockType:string;
     tilesPictures:any;
     playerPictures:any;
+    defaultPlayerDirection:string;
     playerPosition:CustomTypes.Point;
     finishPosition:CustomTypes.Point
-    defaultPlayerDirection:string;
 }
 
 interface LevelState{
@@ -36,6 +36,8 @@ interface LevelState{
     finishPosition:CustomTypes.Point;
     result:boolean;
     minArrows:number;
+    numberOfCoins:number;
+    gatheredCoins:number;
     speedValue:number;
 }
 
@@ -69,14 +71,16 @@ export class Level extends React.Component<LevelProps,LevelState> {
             gameMap: props.gameMap,
             editorMap: this.createDeepCopyArray(this.defaultGameMap),
             editorPlayerDirection: "d",
+            playerDirection: "d",
             editorPlayerPosition: [-1,-1],
             editorFinishPosition: [-1,-1],
-            toggleLevel: true,
-            playerDirection: "d",
             editorNmbRows: props.gameMap.length,
             editorNmbCols: props.gameMap[0].length,
-            minArrows:-1,
+            toggleLevel: true,
+            numberOfCoins:5,
+            gatheredCoins:0,
             speedValue:1000,
+            minArrows:-1,
             result: false
         }
         this.changePlayerPosition = this.changePlayerPosition.bind(this);
@@ -90,9 +94,7 @@ export class Level extends React.Component<LevelProps,LevelState> {
     }
 
     setEditorPlayerDirection(isPlayer:boolean) {
-        console.log("hs");
         if (isPlayer) {
-            console.log("yes");
             let playerDirection: string = this.state.editorPlayerDirection;
             switch (playerDirection) {
                 case("w"):
@@ -142,6 +144,12 @@ export class Level extends React.Component<LevelProps,LevelState> {
         return finalArray;
     }
 
+    removeCoinsFromArray(coords:CustomTypes.Point){
+        let newGameMapCopy: any = [...this.state.gameMap];
+        newGameMapCopy[coords[0]][coords[1]] = "0";
+        this.setState({gameMap: newGameMapCopy});
+    }
+
     checkPlayerCollisionWithObject() {
         let x = this.state.playerPosition[0] + this.movementPoint[0];
         let y = this.state.playerPosition[1] + this.movementPoint[1];
@@ -151,6 +159,7 @@ export class Level extends React.Component<LevelProps,LevelState> {
 
             if(this.state.playerPosition[0] === this.state.finishPosition[0] && this.state.playerPosition[1] === this.state.finishPosition[1]){
                 this.stopMovementInterval();
+                return;
             }
 
             if (value !== "1") {
@@ -175,6 +184,10 @@ export class Level extends React.Component<LevelProps,LevelState> {
                         this.setState({playerDirection:"s"});
                         this.movementPoint = [1, 0];
                     }
+                    break;
+                case("4"):
+                    this.removeCoinsFromArray([x,y]);
+                    this.setState({gatheredCoins:this.state.gatheredCoins+1})
                     break;
                 case("w"):
                     this.movementPoint = [-1, 0];
@@ -249,7 +262,7 @@ export class Level extends React.Component<LevelProps,LevelState> {
         let previousValue = this.state.editorMap[coords[0]][coords[1]];
 
         if (!isDraggableObject) {
-            if (coords[0] === this.state.editorPlayerPosition[0] && coords[1] === this.state.editorPlayerPosition[1] || previousValue === "2") {
+            if ((coords[0] === this.state.editorPlayerPosition[0] && coords[1] === this.state.editorPlayerPosition[1]) || previousValue === "2") {
                 return;
             }
             let value = "0";
@@ -462,15 +475,17 @@ export class Level extends React.Component<LevelProps,LevelState> {
     }
 
     changeIntervalSpeed(){
-        this.stopMovementInterval();
-        this.startMovementInterval();
+        if(this.movementInterval!==null && this.movementInterval!==undefined){
+            this.stopMovementInterval();
+            this.startMovementInterval();
+        }
     }
 
     render() {
         return (
-            <div>
+            <Container fluid={true}>
                 {this.state.toggleLevel ?
-                    <div>
+                    <Row>
                         <div className={"button-group-properties"}>
                             <Button className={"m-1"} variant="outline-success" size="lg"
                                     onClick={() => this.startMovementInterval()}>
@@ -497,8 +512,8 @@ export class Level extends React.Component<LevelProps,LevelState> {
                             <Arrow arrowType={"a"} tilePicture={this.tilesPictures["a"]}/>
                             <Arrow arrowType={"d"} tilePicture={this.tilesPictures["d"]}/>
                         </div>
-                    </div> :
-                    <div>
+                    </Row> :
+                    <Row>
                         <div className={"input-group-properties"}>
                             <Container>
                                 <Row>
@@ -542,7 +557,7 @@ export class Level extends React.Component<LevelProps,LevelState> {
                             }
                             <EditorPlayerFinish type={"coin"} setEditorPlayerDirection={this.setEditorPlayerDirection} tilePicture={this.tilesPictures["4"]}/>
                         </div>
-                    </div>}
+                    </Row>}
 
                 <div className={"menu-button-properties"}>
                     {this.state.toggleLevel ?
@@ -630,7 +645,10 @@ export class Level extends React.Component<LevelProps,LevelState> {
                             )}
                         </div>}
                 </div>
-            </div>
+                {this.state.toggleLevel ?
+                    <p>Počet pozbieraných mincí: {this.state.gatheredCoins}</p>:<p/>
+                }
+            </Container>
         );
     }
 }
