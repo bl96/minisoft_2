@@ -2,7 +2,10 @@
   width: 100vw;
   height: 100vh;
   display:flex;
-  align-items: start;
+}
+
+body{
+  background-color: silver;
 }
 
 .main_grid {
@@ -13,47 +16,8 @@
   padding: 0 !important;
 }
 
-.menu_buttons_properties{
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  top: 8%;
-  left:5%;
-}
-
-.menu_button_properties{
-  padding-bottom: 5vh;
-  align-self: center;
-  min-width:7vw;
-  min-height:10vh;
-}
-
-.background_image_properties{
-  height: 100vh;
-  width: 100vw;
-}
-
-.hero_background_image_properties{
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  min-width:7vw;
-  min-height:7vh;
-  top: 80%;
-  left:35%;
-}
-
-.level_properties{
-  width:100vw;
-  height:100vh;
-  display:flex;
-}
-
-.playground_properties{
-  display: grid;
-  align-self: center;
-  margin-left: auto;
-  margin-right: auto;
+.playground-properties{
+  display: inline-block;
 }
 
 .square_properties{
@@ -62,38 +26,16 @@
   height:auto;
 }
 
-.col{
-  padding: 0;
-}
-
-.level-upper-properties{
-  background-color: silver;
-  height: 100%;
-  width: 100%
-}
-
-.level-buttons-properties{
-  position:relative;
-}
-
-.level-buttons-upperdiv-properties{
-  display: flex;
-  position:absolute;
-  flex-direction: column;
-  right:50%;
-  bottom:15%;
-}
-
 .button-group-properties{
-  position:absolute;
   display: flex;
   flex-direction: row;
-  top:10%;
-  left: 50%;
-  transform: translate(-50%, -50%);
 }
 
 .button-group-properties .btn{
+  font-size: Calc(1vw + 1vh);
+}
+
+.button-group-properties-right .btn{
   font-size: Calc(1vw + 1vh);
 }
 
@@ -102,24 +44,17 @@
 }
 
 .arrows-group-properties{
-  position:absolute;
   display: flex;
   flex-direction: column;
-  top:50%;
-  left: 10%;
-  transform: translate(-50%, -50%);
 }
 
 .menu-button-properties{
-  position:absolute;
   display: flex;
   flex-direction: column;
-  top:50%;
-  right: 10%;
-  transform: translate(+50%, -50%);
 }
 
 .arrow-properties{
+  align-self: center;
   min-width:4vw;
   min-height:4vh;
   margin-bottom: 1em;
@@ -130,28 +65,66 @@
 }
 
 .input-group-properties{
-  position:absolute;
   display: flex;
   flex-direction: column;
-  top:10%;
-  left: 50%;
-  transform: translate(-50%, -50%);
 }
 
 .result-properties{
-  position:absolute;
   display: flex;
   flex-direction: column;
   width:80vw;
   height: 15vh;
   border: 0.2em solid black;
-  bottom:0;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  margin: 0;
 }
 
 .main-level-properties{
   display:flex;
+}
 
+.game-grid{
+  min-height: 100%;
+  min-width: 100%;
+}
+
+.margin-top{
+  margin-top: 15px;
+}
+
+*{
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+.playground-properties-center{
+  text-align: center;
+}
+
+.no-padding{
+  padding-right: 0 !important;
+  padding-left: 0 !important;
+}
+
+.min-width-properties{
+  min-width: 5em;
+}
+
+.button-add-dec{
+}
+
+.min-width-properties-big{
+  min-width: 7em;
+}
+
+.margin-top-big{
+  margin-top: Calc(3.3vh);
+}
+
+.task-details-properties{
+  margin: 1em;
+  font-size: 18px;
+}
+
+.result-details-properties{
+  margin: 1em;
+  font-size: 24px;
 }

@@ -36,9 +36,11 @@ interface LevelState{
     finishPosition:CustomTypes.Point;
     result:boolean;
     minArrows:number;
-    numberOfCoins:number;
+    numberOfCoinsToGather:number;
     gatheredCoins:number;
     speedValue:number;
+    editorMaxCoins:number;
+    playerInFinish:boolean;
 }
 
 export class Level extends React.Component<LevelProps,LevelState> {
@@ -52,7 +54,7 @@ export class Level extends React.Component<LevelProps,LevelState> {
     defaultPlayerPosition: CustomTypes.Point;
     defaultFinishPosition:CustomTypes.Point;
     minNumberRowsColsEditor: number = 1;
-    maxNumberRowsColsEditor: number = 10;
+    maxNumberRowsColsEditor: number = 12;
 
     constructor(props: LevelProps) {
         super(props);
@@ -66,6 +68,7 @@ export class Level extends React.Component<LevelProps,LevelState> {
         this.defaultPlayerDirection = props.defaultPlayerDirection;
 
         this.state = {
+            editorMaxCoins:0,
             playerPosition: props.playerPosition,
             finishPosition: props.finishPosition,
             gameMap: props.gameMap,
@@ -77,10 +80,11 @@ export class Level extends React.Component<LevelProps,LevelState> {
             editorNmbRows: props.gameMap.length,
             editorNmbCols: props.gameMap[0].length,
             toggleLevel: true,
-            numberOfCoins:5,
+            numberOfCoinsToGather:3,
             gatheredCoins:0,
             speedValue:1000,
             minArrows:-1,
+            playerInFinish: false,
             result: false
         }
         this.changePlayerPosition = this.changePlayerPosition.bind(this);
@@ -159,6 +163,7 @@ export class Level extends React.Component<LevelProps,LevelState> {
 
             if(this.state.playerPosition[0] === this.state.finishPosition[0] && this.state.playerPosition[1] === this.state.finishPosition[1]){
                 this.stopMovementInterval();
+                this.setState({playerInFinish:true});
                 return;
             }
 
@@ -215,6 +220,7 @@ export class Level extends React.Component<LevelProps,LevelState> {
     startMovementInterval() {
         if (this.movementInterval == null) {
             this.movementInterval = setInterval(this.changePlayerPosition, this.state.speedValue);
+            this.setState({gatheredCoins:0});
         }
     }
 
@@ -247,7 +253,9 @@ export class Level extends React.Component<LevelProps,LevelState> {
             gameMap: this.createDeepCopyArray(this.defaultGameMap),
             playerPosition: this.defaultPlayerPosition,
             playerDirection: this.defaultPlayerDirection,
-            finishPosition: this.defaultFinishPosition
+            finishPosition: this.defaultFinishPosition,
+            playerInFinish: false,
+            gatheredCoins: 0
         });
     }
 
@@ -269,6 +277,16 @@ export class Level extends React.Component<LevelProps,LevelState> {
             if (previousValue === "0") {
                 value = "1";
             }
+            if(previousValue === "4"){
+                let newValue = this.state.editorMaxCoins-1;
+
+                if(newValue<this.state.numberOfCoinsToGather){
+                    this.setState({editorMaxCoins:newValue, numberOfCoinsToGather:newValue});
+                }
+                else{
+                    this.setState({editorMaxCoins:newValue});
+                }
+            }
             this.changeValueEditor(value,coords);
 
         } else {
@@ -279,7 +297,26 @@ export class Level extends React.Component<LevelProps,LevelState> {
                 this.setState({editorPlayerPosition:[-1,-1]});
             }
 
-            if (type === "0" || type === "1" || type === "4") {
+            if(previousValue === "4"){
+                if(type === "4"){
+                    return;
+                }
+                let newValue:number = this.state.editorMaxCoins-1;
+                if(newValue<this.state.numberOfCoinsToGather){
+                    this.setState({editorMaxCoins:newValue,numberOfCoinsToGather:newValue});
+                }
+                else{
+                    this.setState({editorMaxCoins:newValue});
+                }
+            }
+
+            if (type === "0" || type === "1") {
+                this.changeValueEditor(type,coords);
+                return;
+            }
+
+            if(type === "4"){
+                this.setState({editorMaxCoins:this.state.editorMaxCoins+1});
                 this.changeValueEditor(type,coords);
                 return;
             }
@@ -289,12 +326,12 @@ export class Level extends React.Component<LevelProps,LevelState> {
     }
 
     changeValueInArray(value: string, coords: CustomTypes.Point) {
-        if(coords[0] === this.state.playerPosition[0] && coords[1] === this.state.playerPosition[1]){
+        if(this.checkIfPlayerOnTile(coords[0],coords[1]) || this.checkIfFinishOnTile(coords[0],coords[1])){
             return;
         }
 
         let previousValue = this.state.gameMap[coords[0]][coords[1]];
-        if (previousValue === "1" || previousValue === "2") {
+        if (previousValue === "1" || previousValue === "4") {
             return;
         }
 
@@ -363,6 +400,17 @@ export class Level extends React.Component<LevelProps,LevelState> {
                     }
                 }
             });
+    }
+
+    changeNmbCoins(incNumb:boolean){
+        let incCount:number = incNumb?+1:-1;
+        let newCount:number = this.state.numberOfCoinsToGather + incCount;
+
+        if(newCount>this.state.editorMaxCoins || newCount<0){
+            return;
+        }
+
+        this.setState({numberOfCoinsToGather: newCount});
     }
 
     changeNmbRowsCols(type:string, incNmb:boolean){
@@ -445,7 +493,6 @@ export class Level extends React.Component<LevelProps,LevelState> {
 
         fr.onload = function (e:any) {
             let stateFromJson = JSON.parse(e.target.result);
-            console.log(stateFromJson);
             ref.setState({...stateFromJson})
         }
         fr.readAsText(file);
@@ -456,8 +503,21 @@ export class Level extends React.Component<LevelProps,LevelState> {
         FileSaver.saveAs(blob, fileName+".json");
     }
 
+    checkNumberOfCoins(){
+        let numberCoins: number = 0;
+        for(let i=0;i<this.defaultGameMap.length;i++){
+            for(let a = 0; a<this.defaultGameMap[i].length;a++){
+                if(this.defaultGameMap[i][a] === "4"){
+                    numberCoins+=1;
+                }
+            }
+        }
+        this.setState({editorMaxCoins:numberCoins});
+    }
+
     saveEditorMap() {
         this.defaultGameMap = this.createDeepCopyArray(this.state.editorMap);
+
         this.setState({
             gameMap: this.createDeepCopyArray(this.state.editorMap),
             playerDirection: this.state.editorPlayerDirection,
@@ -483,171 +543,214 @@ export class Level extends React.Component<LevelProps,LevelState> {
 
     render() {
         return (
-            <Container fluid={true}>
-                {this.state.toggleLevel ?
-                    <Row>
-                        <div className={"button-group-properties"}>
-                            <Button className={"m-1"} variant="outline-success" size="lg"
-                                    onClick={() => this.startMovementInterval()}>
-                                Štartuj simuláciu
-                            </Button>
-                            <Button className={"m-1"} variant="outline-danger" size="lg"
-                                    onClick={() => this.stopMovementInterval()}>
-                                Zastav simuláciu
-                            </Button>
-                            <Button className={"m-1"} variant="outline-secondary" size="lg"
-                                    onClick={() => this.resetPlayerPositionToPrevious()}>
-                                Vymaž zmeny
-                            </Button>
-                            <Form>
-                                <Form.Group controlId="formBasicRange">
-                                    <Form.Label>Rýchlosť posunu</Form.Label>
-                                    <Form.Control onChange={(e:any) => this.changeSpeed(e)} min={100} max={1000} step={50} value={this.state.speedValue} type="range" />
-                                </Form.Group>
-                            </Form>
-                        </div>
-                        <div className={"arrows-group-properties"}>
-                            <Arrow arrowType={"w"} tilePicture={this.tilesPictures["w"]}/>
-                            <Arrow arrowType={"s"} tilePicture={this.tilesPictures["s"]}/>
-                            <Arrow arrowType={"a"} tilePicture={this.tilesPictures["a"]}/>
-                            <Arrow arrowType={"d"} tilePicture={this.tilesPictures["d"]}/>
-                        </div>
-                    </Row> :
-                    <Row>
-                        <div className={"input-group-properties"}>
-                            <Container>
+            <Container fluid={true} className={"game-grid"}>
+            {this.state.toggleLevel ?
+                    <div>
+                        <Row className={"margin-top"}>
+                            <Col className={"justify-content-center button-group-properties"}>
+                                <Button className={"m-1"} variant="outline-success"
+                                        onClick={() => this.startMovementInterval()}>
+                                    Štartuj simuláciu
+                                </Button>
+                                <Button className={"m-1"} variant="outline-danger"
+                                        onClick={() => this.stopMovementInterval()}>
+                                    Zastav simuláciu
+                                </Button>
+                                <Button className={"m-1"} variant="outline-secondary"
+                                        onClick={() => this.resetPlayerPositionToPrevious()}>
+                                    Vymaž zmeny
+                                </Button>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col className={"justify-content-center button-group-properties"}>
+                                <Form>
+                                    <Form.Group controlId="formBasicRange">
+                                        <Form.Label>Rýchlosť posunu</Form.Label>
+                                        <Form.Control onChange={(e: any) => this.changeSpeed(e)} min={100} max={1000}
+                                                      step={50} value={this.state.speedValue} type="range"/>
+                                    </Form.Group>
+                                </Form>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col className={"my-auto col-2"}>
                                 <Row>
-                                    <label className={"mr-2"} htmlFor="rows">Počet stĺpcov (min {this.minNumberRowsColsEditor},
-                                        max {this.maxNumberRowsColsEditor}): {this.state.editorNmbRows}</label>
-                                    <Button variant={"outline-success mr-2"}
-                                            onClick={() => this.changeNmbRowsCols("r",true)}>
-                                        +
-                                    </Button>
-                                    <Button variant={"outline-danger"}
-                                            onClick={() => this.changeNmbRowsCols("r",false)}>
-                                        -
-                                    </Button>
+                                    <Arrow arrowType={"w"} tilePicture={this.tilesPictures["w"]}/>
                                 </Row>
-                                <div className={"mt-3"} >
-                                    <Row>
-                                        <label className={"mr-2"} htmlFor="rows">Počet stĺpcov (min {this.minNumberRowsColsEditor},
-                                            max {this.maxNumberRowsColsEditor}): {this.state.editorNmbCols}</label>
-                                        <Button variant={"outline-success mr-2"}
-                                                onClick={() => this.changeNmbRowsCols("c",true)}>
-                                            +
-                                        </Button>
-                                        <Button variant={"outline-danger"}
-                                                onClick={() => this.changeNmbRowsCols("c",false)}>
-                                            -
-                                        </Button>
-                                    </Row>
-                                </div>
-                            </Container>
-                    </div>
-                        <div className={"arrows-group-properties"}>
-                            {(this.state.editorPlayerPosition[0]===-1 && this.state.editorPlayerPosition[1]===-1)?
-                                <EditorPlayerFinish type={"player"} setEditorPlayerDirection={this.setEditorPlayerDirection} tilePicture={this.playerPictures[this.state.editorPlayerDirection]}/>:
-                                <div>
-                                </div>
-                            }
-                            {(this.state.editorFinishPosition[0]===-1 && this.state.editorFinishPosition[1]===-1)?
-                                <EditorPlayerFinish type={"finish"} setEditorPlayerDirection={this.setEditorPlayerDirection} tilePicture={this.tilesPictures["2"]}/>:
-                                <div>
-                                </div>
-                            }
-                            <EditorPlayerFinish type={"coin"} setEditorPlayerDirection={this.setEditorPlayerDirection} tilePicture={this.tilesPictures["4"]}/>
-                        </div>
-                    </Row>}
-
-                <div className={"menu-button-properties"}>
-                    {this.state.toggleLevel ?
-                        <Button className={"m-1"} variant="outline-primary" size="lg"
-                                onClick={() => this.setToggleLevel(false)}>
-                            Editor
-                        </Button> :
-                        <Button className={"m-1"} variant="outline-info" size="lg"
-                                onClick={() => this.setToggleLevel(true)}>
-                            Level
-                        </Button>
-                    }
-                    {this.state.toggleLevel ?
-                        <Button className={"m-1"} variant="outline-dark" size="lg"
-                                onClick={() => {
-                                    let doc = document.getElementById('uploadInput');
-                                    if (doc) {
-                                        doc.click()
-                                    }
-                                }}>
-                            Načítaj
-                            <input id='uploadInput' type='file' name='jsonFile'
-                                   onChange={(e) => {
-                                       this.importState(e);
-                                   }}
-                                   hidden={true}
-                                   style={{display: 'none'}}/>
-                        </Button>:
-                        <div>
-                        </div>
-                    }
-                    {this.state.toggleLevel ?
-                        <Button className={"m-1"} variant="outline-dark" size="lg"
-                                onClick={() => this.saveFile("savedSipky")}>
-                            Ulož
-                        </Button>:
-                        <Button className={"m-1"} variant="outline-dark" size="lg"
-                                onClick={() => this.saveEditorMap()}>
-                            Ulož zmeny
-                        </Button>
-                    }
-
-                </div>
-                <div className={"level_properties"} tabIndex={1} ref={current => this.level = current}>
-                    {this.state.toggleLevel ?
-                        <div className={"playground_properties"}>
-                            {this.state.gameMap.map((row: Array<string>, countRow: number) =>
-                                <Row key={"gameRow" + countRow}>
-                                    {row.map((colType: string, countCol: number) =>
-                                        <Col key={"gameCol" + countCol}>
-                                            <Square
-                                                finishPicture={this.tilesPictures["2"]}
-                                                removeObjectFromTile={this.removeObjectFromTile}
-                                                changeValueInArray={this.changeValueInArray}
-                                                tileCoordsInArray={[countRow, countCol]}
-                                                playerPicture={this.playerPictures[this.state.playerDirection]}
-                                                tilePicture={this.tilesPictures[colType]}
-                                                isPlayerOn={this.checkIfPlayerOnTile(countRow, countCol)}
-                                                isFinishOn={this.checkIfFinishOnTile(countRow, countCol)}
-                                            />
-                                        </Col>)}
+                                <Row>
+                                    <Arrow arrowType={"s"} tilePicture={this.tilesPictures["s"]}/>
                                 </Row>
-                            )}
-                        </div> :
-                        <div className={"playground_properties"}>
-                            {this.state.editorMap.map((row: Array<string>, countRow: number) =>
-                                <Row key={"gameRow" + countRow}>
-                                    {row.map((colType: string, countCol: number) =>
-                                        <Col key={"gameCol" + countCol}>
-                                            <SquareEditor
-                                                setEditorPlayerDirection={this.setEditorPlayerDirection}
-                                                checkIfFinishOnTileEditor={this.checkIfFinishOnTileEditor}
-                                                checkIfPlayerOnTileEditor={this.checkIfPlayerOnTileEditor}
-                                                changeValueInArrayEditor={this.changeValueInArrayEditor}
-                                                tileCoordsInArray={[countRow, countCol]}
-                                                playerPicture={this.playerPictures[this.state.editorPlayerDirection]}
-                                                colType={colType}
-                                                tilePicture={this.tilesPictures[colType]}
-                                                finishPicture={this.tilesPictures["2"]}
-                                                isPlayerOn={this.checkIfPlayerOnTileEditor(countRow, countCol)}
-                                                isFinishOn={this.checkIfFinishOnTileEditor(countRow, countCol)}
+                                <Row>
+                                    <Arrow arrowType={"a"} tilePicture={this.tilesPictures["a"]}/>
+                                </Row>
+                                <Row>
+                                    <Arrow arrowType={"d"} tilePicture={this.tilesPictures["d"]}/>
+                                </Row>
+                            </Col>
+                            <Col className={"col-8 justify-content-center playground-properties-center"}>
+                                <div className={"playground-properties"}>
+                                {this.state.gameMap.map((row: Array<string>, countRow: number) =>
+                                    <Row className={"no-padding"} key={"gameRow" + countRow}>
+                                        {row.map((colType: string, countCol: number) =>
+                                            <Col className={"no-padding"} key={"gameCol" + countCol}>
+                                                <Square
+                                                    finishPicture={this.tilesPictures[this.state.gatheredCoins === this.state.numberOfCoinsToGather?"3":"2"]}
+                                                    removeObjectFromTile={this.removeObjectFromTile}
+                                                    changeValueInArray={this.changeValueInArray}
+                                                    tileCoordsInArray={[countRow, countCol]}
+                                                    playerPicture={this.playerPictures[this.state.playerDirection]}
+                                                    tilePicture={this.tilesPictures[colType]}
+                                                    isPlayerOn={this.checkIfPlayerOnTile(countRow, countCol)}
+                                                    isFinishOn={this.checkIfFinishOnTile(countRow, countCol)}
                                                 />
-                                        </Col>)}
+                                            </Col>)}
+                                    </Row>)}
+                                </div>
+                            </Col>
+                            <Col className={"col-2 button-group-properties-right my-auto"}>
+                                <Row>
+                                    <Button className={"m-1 min-width-properties"} variant="outline-primary"
+                                            onClick={() => {this.setToggleLevel(false); this.checkNumberOfCoins();}}>
+                                        Editor
+                                    </Button>
                                 </Row>
-                            )}
-                        </div>}
+                                <Row>
+                                    <Button className={"m-1 min-width-properties"} variant="outline-dark"
+                                            onClick={() => this.saveFile("savedSipky")}>
+                                        Ulož</Button>
+                                </Row>
+                                <Row>
+                                    <Button className={"m-1 min-width-properties"} variant="outline-dark"
+                                            onClick={() => {
+                                                let doc = document.getElementById('uploadInput');
+                                                if (doc) {
+                                                    doc.click()
+                                                }
+                                            }}>
+                                        Načítaj
+                                        <input id='uploadInput' type='file' name='jsonFile'
+                                               onChange={(e) => {
+                                                   this.importState(e);
+                                               }}
+                                               hidden={true}
+                                               style={{display: 'none'}}/>
+                                    </Button>
+                                </Row>
+                            </Col>
+                        </Row>
+                        <Row className={"justify-content-center margin-top"}>
+                            <p>Počet pozbieraných mincí: {this.state.gatheredCoins}</p>
+                        </Row>
+                        <Row className={"justify-content-center margin-top task-details-properties"}>
+                            <p>Pozbieraj práve {this.state.numberOfCoinsToGather} {this.state.numberOfCoinsToGather===0?"mincí":this.state.numberOfCoinsToGather===1?"mincu":"mince"} aby si vedel zobrať poklad.</p>
+                        </Row>
+                        <Row className={"justify-content-center result-details-properties"}>
+                            {this.state.playerInFinish?<p>{this.state.numberOfCoinsToGather === this.state.gatheredCoins?"Gratulujeme, splnil si úlohu podľa zadania.":"Tvoje riešenie nie je úplne správne, skús nájsť iné."}</p>:<p></p>}
+                        </Row>
+                    </div> :
+                <div>
+                    <Row className={"margin-top"}>
+                            <Col className={"d-flex justify-content-center"}>
+                                <label className={"m-1"} htmlFor="rows">Počet riadkov (min {this.minNumberRowsColsEditor},
+                                    max {this.maxNumberRowsColsEditor}): {this.state.editorNmbRows}</label>
+                                <Button className={"m-1 button-add-dec"} variant={"outline-success"}
+                                        onClick={() => this.changeNmbRowsCols("r",true)}>
+                                    +
+                                </Button>
+                                <Button className={"m-1 button-add-dec"} variant={"outline-danger"}
+                                        onClick={() => this.changeNmbRowsCols("r",false)}>
+                                    -
+                                </Button>
+                            </Col>
+                        </Row>
+                        <Row className={"margin-top"}>
+                            <Col className={"d-flex justify-content-center"}>
+                                <label className={"m-1"} htmlFor="rows">Počet stĺpcov (min {this.minNumberRowsColsEditor},
+                                    max {this.maxNumberRowsColsEditor}): {this.state.editorNmbCols}</label>
+                                <Button className={"m-1 button-add-dec"} variant={"outline-success"}
+                                        onClick={() => this.changeNmbRowsCols("c",true)}>
+                                    +
+                                </Button>
+                                <Button className={"m-1 button-add-dec"} variant={"outline-danger"}
+                                        onClick={() => this.changeNmbRowsCols("c",false)}>
+                                    -
+                                </Button>
+                            </Col>
+                        </Row>
+                    <Row className={"margin-top"}>
+                        <Col className={"d-flex justify-content-center"}>
+                            <label className={"m-1"} htmlFor="rows">Počet mincí, ktoré má hráč pozbierať: (min 0, max {this.state.editorMaxCoins} - maximálny počet mincí zavísí od počtú mincí v hre): {this.state.numberOfCoinsToGather}</label>
+                            <Button className={"m-1 button-add-dec"} variant={"outline-success"}
+                                    onClick={() => this.changeNmbCoins(true)}>
+                                +
+                            </Button>
+                            <Button className={"m-1 button-add-dec"} variant={"outline-danger"}
+                                    onClick={() => this.changeNmbCoins(false)}>
+                                -
+                            </Button>
+                        </Col>
+                    </Row>
+                    <Row className={"margin-top-big"}>
+                        <Col className={"my-auto"}>
+                            <Row>
+                                {(this.state.editorPlayerPosition[0]===-1 && this.state.editorPlayerPosition[1]===-1)?
+                                    <EditorPlayerFinish type={"player"} setEditorPlayerDirection={this.setEditorPlayerDirection} tilePicture={this.playerPictures[this.state.editorPlayerDirection]}/>:
+                                    <div>
+                                    </div>
+                                }
+                            </Row>
+                           <Row>
+                               {(this.state.editorFinishPosition[0]===-1 && this.state.editorFinishPosition[1]===-1)?
+                                   <EditorPlayerFinish type={"finish"} setEditorPlayerDirection={this.setEditorPlayerDirection} tilePicture={this.tilesPictures["2"]}/>:
+                                   <div>
+                                   </div>
+                               }
+                           </Row>
+                           <Row>
+                               <EditorPlayerFinish type={"coin"} setEditorPlayerDirection={this.setEditorPlayerDirection} tilePicture={this.tilesPictures["4"]}/>
+                           </Row>
+                        </Col>
+                        <Col className={"col-8 justify-content-center playground-properties-center"}>
+                            <div className={"playground-properties"}>
+                                {this.state.editorMap.map((row: Array<string>, countRow: number) =>
+                                    <Row className={"no-padding"} key={"gameRow" + countRow}>
+                                        {row.map((colType: string, countCol: number) =>
+                                            <Col className={"no-padding"} key={"gameCol" + countCol}>
+                                                <SquareEditor
+                                                    setEditorPlayerDirection={this.setEditorPlayerDirection}
+                                                    checkIfFinishOnTileEditor={this.checkIfFinishOnTileEditor}
+                                                    checkIfPlayerOnTileEditor={this.checkIfPlayerOnTileEditor}
+                                                    changeValueInArrayEditor={this.changeValueInArrayEditor}
+                                                    tileCoordsInArray={[countRow, countCol]}
+                                                    playerPicture={this.playerPictures[this.state.editorPlayerDirection]}
+                                                    colType={colType}
+                                                    tilePicture={this.tilesPictures[colType]}
+                                                    finishPicture={this.tilesPictures["2"]}
+                                                    isPlayerOn={this.checkIfPlayerOnTileEditor(countRow, countCol)}
+                                                    isFinishOn={this.checkIfFinishOnTileEditor(countRow, countCol)}
+                                                />
+                                            </Col>)}
+                                    </Row>)}
+                            </div>
+                        </Col>
+                        <Col className={"button-group-properties-right my-auto"}>
+                            <Row>
+                                <Button className={"m-1 min-width-properties-big"} variant="outline-info" size="lg"
+                                        onClick={() => this.setToggleLevel(true)}>
+                                    Level
+                                </Button>
+                            </Row>
+                            <Row>
+                                <Button className={"m-1 min-width-properties-big"} variant="outline-dark" size="lg"
+                                        onClick={() => this.saveEditorMap()}>
+                                    Ulož zmeny
+                                </Button>
+                            </Row>
+                        </Col>
+                    </Row>
                 </div>
-                {this.state.toggleLevel ?
-                    <p>Počet pozbieraných mincí: {this.state.gatheredCoins}</p>:<p/>
-                }
+            }
             </Container>
         );
     }

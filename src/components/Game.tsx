@@ -15,24 +15,20 @@ export class Game extends React.Component<any,any>{
         super(props);
         this.gameMap = [
             ["1","1","1","1","1","1","1"],
-            ["1","0","0","0","0","0","1"],
-            ["1","0","0","0","0","0","1"],
-            ["1","0","0","0","0","0","1"],
-            ["1","0","0","0","0","0","1"],
-            ["1","0","0","0","0","0","1"],
+            ["1","0","1","0","1","0","1"],
+            ["1","0","4","0","1","0","1"],
+            ["1","0","1","0","0","0","1"],
+            ["1","0","4","0","0","0","1"],
+            ["1","0","0","0","1","4","1"],
             ["1","1","1","1","1","1","1"]];
-        this.playerPosition = [3,4];
-        this.finishPosition = [5,5];
+        this.playerPosition = [1,1];
+        this.finishPosition = [1,5];
     }
 
     render() {
         return (
-            <div className={"main_grid"}>
-                    <div>
-                        <Level defaultPlayerDirection={"d"} blockType={"1"} playerPictures={this.playerPictures} playerPosition={this.playerPosition}
+            <Level defaultPlayerDirection={"d"} blockType={"1"} playerPictures={this.playerPictures} playerPosition={this.playerPosition}
                                tilesPictures={this.tilesPictures} gameMap={this.gameMap} level={"0"} finishPosition={this.finishPosition}/>
-                    </div>
-            </div>
         );
     }
 }
